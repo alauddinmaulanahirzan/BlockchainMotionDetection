@@ -1,0 +1,5 @@
+iot-db-adminsdk.json
+*.avi
+*.csv
+.*
+__pycache__
