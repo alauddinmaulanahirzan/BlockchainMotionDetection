@@ -41,26 +41,26 @@ def start(update: Update, context: CallbackContext) -> None:
     start_mil = current_milli_time()
     message = ">> ======================\n"
     message += ">> Bot : Motion Detection Bot Ready\n"
-    message += ">> Bot : Perintah tersedia:\n"
+    message += ">> Bot : Available Commands:\n"
     message += ">> ======================\n"
-    message += "1. /semua_mesin | Tampilkan semua mesin\n"
-    message += "2. /semua_blok | Tampilkan semua blok dalam mesin\n"
-    message += "3. /semua_data | Tampilkan ukuran semua data di dalam mesin\n"
+    message += "1. /all_machines | Display All Machines\n"
+    message += "2. /all_blocks | Display All Blocks\n"
+    message += "3. /all_data | Display The Size of The Data\n"
     message += ">> ======================\n"
-    message += "4. /terbaru | Tampilkan semua blok 1 jam terakhir\n"
-    message += "5. /mode | Daftar blok berdasarkan mode\n"
+    message += "4. /latest | Display The Latest Blocks (<60 mins)\n"
+    message += "5. /mode | List All Blocks Sorted by mode\n"
     message += ">> ======================\n"
-    message += "6. /verifikasi_blok | Verifikasi validitas Blockchain\n"
-    message += "7. /verifikasi_kunci | Verifikasi kunci enkripsi\n"
-    message += "8. /verifikasi_data | Verifikasi data\n"
+    message += "6. /verify_blocks | Verify Blockchain Validity\n"
+    message += "7. /verify_key | Verify Encryption Key\n"
+    message += "8. /verify_data | Verify Data\n"
     message += ">> ======================\n"
-    message += "9. /blok | Tampilkan semua blok dalam mesin\n"
-    message += "10. /data | Tampilkan semua data dalam blok\n"
+    message += "9. /block | Display All Blocks in A Machine\n"
+    message += "10. /data | Fetch Data From A Block\n"
     message += ">> ======================\n"
-    message += "11. /benchmark | Mengambil data benchmark di Blockchain\n"
+    message += "11. /benchmark | Retrieve Telemetries\n"
     message += ">> ======================\n"
     end_mil = current_milli_time()
-    message += f">> Bot : Selesai ({(end_mil-start_mil)/1000}s)"
+    message += f">> Bot : Finished ({(end_mil-start_mil)/1000}s)"
     context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
 def botVerifyKeys(update: Update, context: CallbackContext) -> None:
@@ -82,7 +82,7 @@ def botVerifyKeys(update: Update, context: CallbackContext) -> None:
 
 def botVerifyBlocks(update: Update, context: CallbackContext) -> None:
     start_mil = current_milli_time()
-    message = f">> Bot : Memeriksa validitas Blockchain"
+    message = f">> Bot : Verifying Blockchain Validity"
     context.bot.send_message(chat_id=update.effective_chat.id, text=message)
     total_blocks = 0
     invalid_blocks = []
@@ -109,19 +109,19 @@ def botVerifyBlocks(update: Update, context: CallbackContext) -> None:
                         invalid_blocks.append(machine+":"+block)
                 curHash = block_data["03 Hash"]
 
-        message = f">> Bot : Menemukan {total_blocks} blok\n"
-        message += f"==>> Blok valid : {valid}\n"
-        message += f"==>> Blok tidak valid : {invalid}\n"
+        message = f">> Bot : Found {total_blocks} blocks\n"
+        message += f"==>> Valid Blocks : {valid}\n"
+        message += f"==>> Invalid Blocks : {invalid}\n"
         context.bot.send_message(chat_id=update.effective_chat.id, text=message)
-        message = "==>> Daftar blok :\n"
+        message = "==>> List of Blocks :\n"
         for list in invalid_blocks:
             message += f"====>> {list}\n"
         context.bot.send_message(chat_id=update.effective_chat.id, text=message)
     else:
-        message = f">> Bot : Tidak menemukan apapun"
+        message = f">> Bot : Nothing Found"
         context.bot.send_message(chat_id=update.effective_chat.id, text=message)
     end_mil = current_milli_time()
-    message = f">> Bot : Selesai ({(end_mil-start_mil)/1000}s)"
+    message = f">> Bot : Finished ({(end_mil-start_mil)/1000}s)"
     context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
 def botVerifyData(update: Update, context: CallbackContext) -> None:
@@ -302,18 +302,18 @@ def botGetData(update: Update, context: CallbackContext) -> None:
         else:
             machine = args[0]
             block = args[1]
-            message = f">> Bot : Mengambil data dari blok '{block}' di mesin '{machine}'"
+            message = f">> Bot : Fetching Data From '{block}' in '{machine}'"
             context.bot.send_message(chat_id=update.effective_chat.id, text=message)
             db = ref.child(machine).child(block).get()
             if(db is not None):
                 # Retrieve Data
                 video_id = db['02 Data']['0-0 Data']
                 # Download Data
-                message = f">> Bot : Mengunduh data dari blok '{block}' (Tunggu)"
+                message = f">> Bot : Downloading Data From '{block}' (Please Wait)"
                 context.bot.send_message(chat_id=update.effective_chat.id, text=message)
                 video_data,status = FirebaseHandler.downloadData(bucket,Blockchain.decryptMessage(str(video_id)))
                 # Sending Video
-                message = f">> Bot : Mengirimkan data ke User (Tunggu)"
+                message = f">> Bot : Sending Data to User (Please Wait)"
                 context.bot.send_message(chat_id=update.effective_chat.id, text=message)
                 # Get Date Time
                 block_telemetry = db['02 Data']['0-1 Telemetry']
@@ -322,13 +322,13 @@ def botGetData(update: Update, context: CallbackContext) -> None:
                 block_time = block_datetime['5-3 Time']
                 block_date = Blockchain.decryptMessage(block_date)
                 block_time = Blockchain.decryptMessage(block_time)
-                message = f"==>> Video '{block}' saat {block_time} {block_date}"
+                message = f"==>> Video '{block}' at {block_time} {block_date}"
                 context.bot.send_video(chat_id=update.effective_chat.id, video=video_data, supports_streaming=False, timeout=1000)
             else:
                 message = f">> Bot : Tidak menemukan data di blok {block} - mesin '{machine}'"
                 context.bot.send_message(chat_id=update.effective_chat.id, text=message)
     end_mil = current_milli_time()
-    message = f">> Bot : Selesai ({(end_mil-start_mil)/1000}s)"
+    message = f">> Bot : Finished ({(end_mil-start_mil)/1000}s)"
     context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
 def botGetRangeData(update: Update, context: CallbackContext) -> None:
@@ -565,16 +565,16 @@ def main():
     jq = updater.job_queue
     # Perintah
     dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("verifikasi_kunci", botVerifyKeys))
-    dispatcher.add_handler(CommandHandler("verifikasi_blok", botVerifyBlocks))
-    dispatcher.add_handler(CommandHandler("verifikasi_data", botVerifyData))
-    dispatcher.add_handler(CommandHandler("semua_mesin", botGetAllMachines))
-    dispatcher.add_handler(CommandHandler("semua_blok", botGetAllBlocks))
-    dispatcher.add_handler(CommandHandler("semua_data", botGetDataSize))
-    dispatcher.add_handler(CommandHandler("blok", botGetBlocks))
+    dispatcher.add_handler(CommandHandler("verify_keys", botVerifyKeys))
+    dispatcher.add_handler(CommandHandler("verify_blocks", botVerifyBlocks))
+    dispatcher.add_handler(CommandHandler("verify_data", botVerifyData))
+    dispatcher.add_handler(CommandHandler("all_machines", botGetAllMachines))
+    dispatcher.add_handler(CommandHandler("all_blocks", botGetAllBlocks))
+    dispatcher.add_handler(CommandHandler("all_data", botGetDataSize))
+    dispatcher.add_handler(CommandHandler("block", botGetBlocks))
     dispatcher.add_handler(CommandHandler("data", botGetData))
     dispatcher.add_handler(CommandHandler("data_jangkauan", botGetRangeData))
-    dispatcher.add_handler(CommandHandler("terbaru", botGetRecentBlocks))
+    dispatcher.add_handler(CommandHandler("latest", botGetRecentBlocks))
     dispatcher.add_handler(CommandHandler("mode", botGetMode))
     dispatcher.add_handler(CommandHandler("benchmark", botGenerateBenchmark))
     updater.start_polling()
